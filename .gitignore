@@ -6,6 +6,9 @@ __pycache__/
 # Exclude dataset
 data/dataset/*
 
+# Exclude pth raw model weight data
+*.pth
+
 # C extensions
 *.so
 
