@@ -33,7 +33,7 @@ def conv_block(
         torch.nn.MaxPool2d(kernel_size=pooling_kernel_size)
     )
     
-class CNNFinal(torch.nn.Module):
+class CNN(torch.nn.Module):
     """
     Modelo CNN para clasificación de imágenes.
     """
@@ -60,7 +60,7 @@ class CNNFinal(torch.nn.Module):
         # Parte fully connected
         self.fc = torch.nn.Sequential(
             torch.nn.Flatten(),
-            torch.nn.Linear(512 * 3 * 3, 512), # se va a 3x3 por el maxpooling aplicado en 5 capas imagen de entrada 100x100
+            torch.nn.Linear(512 * 7 * 7, 512), # se va a 7x7 por el maxpooling aplicado en 5 capas imagen de entrada 224x224
             torch.nn.ReLU(),
             torch.nn.Dropout(p=0.4),
             torch.nn.Linear(512, 256), # se aumenta la cantidad de neuronas para que el dropout no afecte tanto
@@ -133,4 +133,4 @@ if __name__ == "__main__":
     """
     
     # Creamos el modelo          
-    model_final = CNNFinal()
+    model_final = CNN()

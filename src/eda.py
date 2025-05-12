@@ -1,18 +1,20 @@
 import os 
 import shutil
 import pandas as pd
+from PIL import Image
 import seaborn as sns
 from pathlib import Path
-from PIL import Image
+from typing import Dict, List
 import matplotlib.pyplot as plt
 import torchvision.transforms.functional as F
 
 
-def explore_dataset(dataset_path):
+def explore_dataset(dataset_path: str = "dataset/") -> None:
     """
     Explora el contenido del dataset y muestra estadísticas como:
     - Cantidad de elementos por partición (train, test, valid).
     - Cantidad de elementos por clase en cada partición.
+    - Cantidad de resoluciones distintas en las imágenes de cada partición.
 
     Args:
         dataset_path (str): Ruta al dataset.
@@ -30,6 +32,7 @@ def explore_dataset(dataset_path):
         print(f"\nPartición: {partition}")
         class_counts = {}
         total_count = 0
+        resolutions = set()
 
         for class_name in os.listdir(partition_path):
             class_path = os.path.join(partition_path, class_name)
@@ -38,17 +41,35 @@ def explore_dataset(dataset_path):
                 class_counts[class_name] = count
                 total_count += count
 
+                for img_name in os.listdir(class_path):
+                    img_path = os.path.join(class_path, img_name)
+                    try:
+                        with Image.open(img_path) as img:
+                            resolutions.add(img.size)
+                    except Exception as e:
+                        print(f"Error al procesar la imagen {img_path}: {e}")
+
         print(f"Total de elementos: {total_count}")
         for class_name, count in class_counts.items():
             print(f"  Clase '{class_name}': {count} elementos")
+            
+        print(f"Resoluciones distintas en la partición '{partition}': {len(resolutions)}")
+        print("Primeras 5 resoluciones:")
+        for resolution in list(resolutions)[:5]:
+            print(f"  Resolución: {resolution}")
+        if resolutions:
+            max_resolution = max(resolutions, key=lambda x: x[0] * x[1])
+            min_resolution = min(resolutions, key=lambda x: x[0] * x[1])
+            print(f"Resolución máxima: {max_resolution}")
+            print(f"Resolución mínima: {min_resolution}")
 
-def map_counts_to_classnames(class_counts, class_names):
+def map_counts_to_classnames(class_counts: Dict, class_names: Dict) -> Dict:
     """
     Convierte un dict {clase_id: cantidad} a {nombre_clase: cantidad}
     """
     return {class_names[cls]: count for cls, count in class_counts.items()}
 
-def plot_dataset_distribution(dataset_path):
+def plot_dataset_distribution(dataset_path: str = "dataset/") -> None:
     """
     Genera un gráfico de barras que muestra la distribución de clases por partición
     (train/test/valid), con colores personalizados y leyenda prolija.
