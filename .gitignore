@@ -4,7 +4,10 @@ __pycache__/
 *$py.class
 
 # Exclude dataset
-data/dataset/*
+/data/dataset
+
+# Exclude folder used by kagglehub for datasets
+/datasets
 
 # Exclude pth raw model weight data
 *.pth
