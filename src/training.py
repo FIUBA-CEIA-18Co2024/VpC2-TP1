@@ -73,7 +73,18 @@ def fit(
             X, y = X.to(device), y.to(device) # lo enviamos al device
             optimizer.zero_grad() # llevamos optimizer a zero
             y_hat = model(X)  # corremos el modelo y vemos su predicción, esto es la pasada forward (ejecuta forward method del modelo)
-            loss = criterion(y_hat, y)  # calculamos la pérdida
+                        
+            if isinstance(y_hat, tuple):
+                # main_logits, aux_logits para modelos con salida intermedia como Inception
+                main_logits, aux_logits = y_hat
+                loss1 = criterion(main_logits, y)
+                loss2 = criterion(aux_logits, y)
+                loss = loss1 + 0.4 * loss2  # peso sugerido en el paper
+                y_hat = y_hat[0]
+            else:
+                loss = criterion(y_hat, y)
+            
+            # loss = criterion(y_hat, y)  # calculamos la pérdida
             loss.backward() # back-propagations
             optimizer.step()  # step del optimizer
             train_loss.append(loss.item()) # vamos guardando la pérdida de este batch, en la perdida de la epoca
