@@ -7,8 +7,8 @@ from sklearn.metrics import confusion_matrix, classification_report
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 from sklearn.metrics import f1_score
-
-
+from sklearn.metrics import ConfusionMatrixDisplay
+import pandas as pd
 
 def evaluate_model(model: torch.nn.Module, data_loader: DataLoader, class_names: list, device: str, output_file: str = 'evaluation_results.json') -> None:
     """
@@ -119,3 +119,47 @@ def generate_classification_report(model: torch.nn.Module, data_loader: DataLoad
         "loss": avg_loss,
         "classification_report": report
     }
+
+
+def plot_cm_from_results(output_file, labels=['adenocarcinoma', 'large_cell_carcinoma', 'normal', 'squamous_cell_carcinoma']):
+    # Leer archivo JSON con las matrices
+    with open(output_file, 'r') as f:
+        data = json.load(f)
+
+    # Convertir listas a numpy arrays
+    cm = np.array(data['confusion_matrix'])
+    cm_normalized = np.array(data['confusion_matrix_normalized'])
+
+    # Crear figura con dos subplots lado a lado
+    fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+
+    # Matriz de Confusión Absoluta
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                xticklabels=labels, yticklabels=labels, ax=axes[0])
+    axes[0].set_title('Matriz de Confusión (Absoluta)')
+    axes[0].set_xlabel('Predicción')
+    axes[0].set_ylabel('Etiqueta Verdadera')
+
+    # Matriz de Confusión Normalizada
+    sns.heatmap(cm_normalized, annot=True, fmt='.2f', cmap='Blues',
+                xticklabels=labels, yticklabels=labels, ax=axes[1])
+    axes[1].set_title('Matriz de Confusión (Normalizada)')
+    axes[1].set_xlabel('Predicción')
+    axes[1].set_ylabel('Etiqueta Verdadera')
+
+    plt.tight_layout()
+    plt.show()
+
+def plot_report_from_results(output_file):
+    with open(output_file, 'r') as f:
+        data = json.load(f)
+    # Separar accuracy
+    report = data["classification_report"]
+    accuracy = report.pop("accuracy")
+
+    # Convertir a DataFrame
+    df_report = pd.DataFrame(report).T  # Transponer para que las métricas estén en columnas
+    print(df_report)
+
+    # Mostrar accuracy por separado
+    print(f"\nAccuracy: {accuracy:.4f}")
